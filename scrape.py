@@ -26,12 +26,12 @@ class Airbnb:
         self.PASSWORD = 'scrape'
         self.DB = 'airbnb'
         self.logger = logging.getLogger('airbnb_logger')
-        self.DATE_1 = '2019-02-01'
+        self.DATE_1 = '2019-01-01'
         self.DATE_2 = '2019-08-01'
         self.DATES = list(map(lambda x: (str(x.date()), str(x.date() + timedelta(days=3))),
                               pd.date_range(self.DATE_1, self.DATE_2).tolist()))[::10]
         self.TRIES = 8
-        self.CREATE_DB = 'CREATE DATABASE IF NOT EXISTS airbnb;'
+        self.CREATE_DB = 'Create database if not exists airbnb character set utf8 collate utf8_bin;'
 
         self.CREATE_TABLE_HOST = """CREATE TABLE IF NOT EXISTS hosts(
         host_id INT,reviews INT ,join_date INT,host_url TEXT,PRIMARY KEY(host_id));"""
@@ -60,16 +60,23 @@ class Airbnb:
         self.INSERT_HOST_LISTING = """INSERT IGNORE hosts_listings
         (host_id ,listing_id) VALUES (%s,%s);"""
 
-    def create_data_storage(self):
-        """creating connection creating databases and tables with data insert"""
-        cnx = mysql.connector.connect(user=self.USER, password=self.PASSWORD, database=self.DB)
+    def create_database(self):
+        """create new database called airbnb"""
+        cnx = mysql.connector.connect(user=self.USER, password=self.PASSWORD)
         cursor = cnx.cursor()
         cursor.execute(self.CREATE_DB)
+        cnx.commit()
+        cursor.close()
+        cnx.close()
+
+    def create_data_storage(self):
+        """create tables in new databse airbnb"""
+        cnx = mysql.connector.connect(user=self.USER, password=self.PASSWORD, database=self.DB)
+        cursor = cnx.cursor()
         cursor.execute(self.CREATE_TABLE_HOST)
         cursor.execute(self.CREATE_TABLE_LISTING)
         cursor.execute(self.CREATE_TABLE_HOST_LISTING)
         cursor.execute(self.CREATE_TABLE_LISTING_PRICE)
-
         cnx.commit()
         cursor.close()
         cnx.close()
@@ -108,23 +115,23 @@ class Airbnb:
         of the host to be used in the next step"""
         soup = self.get_url(url)
 
-        listing_id = int(re.sub(self.REGEX_3, '', url))
+        listing_id = int(re.sub(self.REGEX_3, '', url)[:-1])
         print(listing_id)
 
-        max_guests = int(re.sub(self.REGEX_3, '', soup.find_all(attrs={'class': '_12i0h32r'})[1].text))
+        max_guests = int(re.sub(self.REGEX_3, '', soup.find_all(attrs={'class': '_6mxuijo'})[0].text))
 
-        bedrooms = soup.find_all('div', attrs={'class': '_1thk0tsb'})[3].text
+        bedrooms = soup.find_all(attrs={'class': '_6mxuijo'})[1].text
 
-        beds = int(re.sub(self.REGEX_3, '', soup.find_all(attrs={'class': '_12i0h32r'})[2].text))
+        beds = int(re.sub(self.REGEX_3, '', soup.find_all(attrs={'class': '_6mxuijo'})[2].text))
 
-        bathrooms = int(re.sub(self.REGEX_3, '', soup.find_all(attrs={'class': '_12i0h32r'})[3].text))
-        reviews = int(soup.find_all(attrs={'class': '_p1g77r'})[1].text)
+        bathrooms = int(re.sub(self.REGEX_3, '', soup.find_all(attrs={'class': '_6mxuijo'})[3].text))
+        reviews = int(soup.find_all(attrs={'class': '_7g6kz31'})[1].text) if int(soup.find_all(attrs={'class': '_7g6kz31'})[1].text) else None
 
         rating_value = float(soup.find(itemprop="ratingValue").get('content'))
 
-        listing_type = soup.find(attrs={'class': '_1hh2h7tb'}).text
+        listing_type = soup.find(attrs={'class': '_1bb2ucx1'}).text
 
-        city = soup.find(attrs={'class': '_ncwphzu'}).text
+        city = soup.find(attrs={'class': '_1r804a6o'}).text
 
         host_url = soup.find(attrs={'class': '_1oa3geg'}).get('href')
 
@@ -229,6 +236,7 @@ def parse_input(location, adults, children, infants):
 def main(location, adults, children, infants):
     URL = parse_input(location, adults, children, infants)
     airbnb_parser = Airbnb()
+    airbnb_parser.create_database()
     airbnb_parser.create_data_storage()
 
     links_list = airbnb_parser.retrieve_listings_links(URL)
