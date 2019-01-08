@@ -12,6 +12,12 @@ import time
 import random
 from multiprocessing import Pool, cpu_count
 
+USER = ''  # mysql username
+PASSWORD = ''  # mysql password
+CORES = cpu_count() - 1  # NUMBER OF CORES TO USE IN THE SCRAPING PROCESS
+DATES_SPAN = ['2019-01-01', '2019-08-01']  # beginning and ending date to scrape price
+DAYS = 10  # scrape the price of a listing every 10 days, smaller vales will increase the scraping time
+
 
 class Airbnb:
     def __init__(self):
@@ -22,14 +28,14 @@ class Airbnb:
         self.REGEX_3 = r'[^0-9]'
         self.AIRBNB = 'https://airbnb.com'
 
-        self.USER = 'scrape'
-        self.PASSWORD = 'scrape'
+        self.USER = USER
+        self.PASSWORD = PASSWORD
         self.DB = 'airbnb'
         self.logger = logging.getLogger('airbnb_logger')
-        self.DATE_1 = '2019-01-01'
-        self.DATE_2 = '2019-08-01'
+        self.DATE_1 = DATES_SPAN[0]
+        self.DATE_2 = DATES_SPAN[1]
         self.DATES = list(map(lambda x: (str(x.date()), str(x.date() + timedelta(days=3))),
-                              pd.date_range(self.DATE_1, self.DATE_2).tolist()))[::10]
+                              pd.date_range(self.DATE_1, self.DATE_2).tolist()))[::DAYS]
         self.TRIES = 8
         self.CREATE_DB = 'Create database if not exists airbnb character set utf8 collate utf8_bin;'
 
@@ -96,7 +102,6 @@ class Airbnb:
 
     def retrieve_listings_links(self, url):
         """ function to find the links of all the listings in the first 17 pages"""
-        print('retrieving links')
         counter = 1
         scraping_urls = []
         soup = Airbnb.get_url(url)
@@ -125,7 +130,8 @@ class Airbnb:
         beds = int(re.sub(self.REGEX_3, '', soup.find_all(attrs={'class': '_6mxuijo'})[2].text))
 
         bathrooms = int(re.sub(self.REGEX_3, '', soup.find_all(attrs={'class': '_6mxuijo'})[3].text))
-        reviews = int(soup.find_all(attrs={'class': '_7g6kz31'})[1].text) if int(soup.find_all(attrs={'class': '_7g6kz31'})[1].text) else None
+        reviews = int(soup.find_all(attrs={'class': '_7g6kz31'})[1].text) if int(
+            soup.find_all(attrs={'class': '_7g6kz31'})[1].text) else None
 
         rating_value = float(soup.find(itemprop="ratingValue").get('content'))
 
@@ -172,7 +178,7 @@ class Airbnb:
         cnx.close()
 
     def retrieve_price(self, url, listing_id):
-        """"""
+        """will scrape and insert price for the listing provided over the chosen timespan"""
         cnx = mysql.connector.connect(user=self.USER, password=self.PASSWORD, database=self.DB)
         cursor = cnx.cursor()
         for dates in self.DATES:
@@ -240,10 +246,8 @@ def main(location, adults, children, infants):
     airbnb_parser.create_data_storage()
 
     links_list = airbnb_parser.retrieve_listings_links(URL)
-    with Pool(cpu_count() - 1) as p:
+    with Pool(CORES) as p:
         p.starmap(airbnb_parser.scrape_one, zip(links_list))
-    # for link in links_list:
-    #     airbnb_parser.scrape_one(link)
 
 
 if __name__ == "__main__":
