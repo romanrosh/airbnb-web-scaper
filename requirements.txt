@@ -1,0 +1,13 @@
+###### Requirements without Version Specifiers ######
+selenium
+bs4
+re
+os
+click
+mysql.connector
+logging
+pandas
+datetime
+time
+random
+multiprocessing
