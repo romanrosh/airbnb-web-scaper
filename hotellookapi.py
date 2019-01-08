@@ -1,19 +1,18 @@
 import requests
 import mysql.connector
 import pandas as pd
-from datetime import date
 from datetime import timedelta
 import logging
 
-checkin = '2019-02-01'
+checkin = '2019-02-01' # beginning and ending date to scrape data
 checkout = '2019-08-01'
-listings = '100'
+listings = '100' # number of listings per parameter set, it seems API works with up to 100 listings per run per set
 
 URL_LIST = 'http://engine.hotellook.com/api/v2/lookup.json?query='
 URL_PRICE = 'http://engine.hotellook.com/api/v2/cache.json?location='
 
-USER = 'scrape'
-PASSWORD = 'scrape'
+USER = "" # mysql username
+PASSWORD = "" # mysql password
 DB = 'airbnb'
 
 CREATE_DB = 'Create database if not exists airbnb character set utf8 collate utf8_bin;'
