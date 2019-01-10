@@ -1,7 +1,7 @@
 # Airbnb_mining 
 Created by Tom Cohen and Roman Rosh
 
-A data scraping program for airbnb
+A data scraping program for airbnb and hotel API for data retrieval
 
 
 Note that the name of the classes used change regularly on airbnb , so you should change them according to the latest airbnb website update.
@@ -15,3 +15,5 @@ You will need to include the user and password of mysql  installed on your compu
 
 Requires the chromedriver file , can be downloaded at : http://chromedriver.chromium.org/downloads 
 should be put in the same directory as the scraper to avoid unnecessary config
+
+Hotels API connects to hotellookapi and retrieves hotel data, for comparing with AirBnb scraper or any other use. The data is connected separately, the aim is to offer all the options for sleeping arrangements in once database.
