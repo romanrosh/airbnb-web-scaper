@@ -1,4 +1,4 @@
-# Airbnb_mining and hotels data API for comfortable comparison between 2 staying options
+# Airbnb_mining and hotels data API for comfortable comparison between 2 sleeping options
 Created by Tom Cohen and Roman Rosh
 
 A data scraping program for airbnb and hotel API for data retrieval
