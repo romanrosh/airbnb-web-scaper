@@ -17,3 +17,5 @@ Requires the chromedriver file , can be downloaded at : http://chromedriver.chro
 should be put in the same directory as the scraper to avoid unnecessary config
 
 Hotels API connects to hotellookapi and retrieves hotel data, for comparing with AirBnb scraper or any other use. The data is connected separately, the aim is to offer all the options for sleeping arrangements in once database.
+
+Hotels API does not require a key but is limited to 100 records per request per location if more records are required perform the request several times as much as needed.
